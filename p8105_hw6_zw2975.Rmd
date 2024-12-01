@@ -13,6 +13,8 @@ library(patchwork)
 library(knitr)
 library(modelr)
 library(mgcv)
+library(SemiPar)
+library(labelled)
 ```
 
 
@@ -190,6 +192,27 @@ New York has the lowest odds ratio and also a relatively small range of CI for t
 
 ```{r Import p3 data}
 bw = read.csv("./data/birthweight.csv")
+```
+
+
+```{r clean dataset}
+# changed numbers to labelled entries
+bw = bw |>
+set_value_labels(
+  frace = c("White" = 1, "Black" = 2, "Asian" = 3, "Puerto Rican" = 4, "Other" = 8, "Unknown" = 9),
+  mrace = c("White" = 1, "Black" = 2, "Asian" = 3, "Puerto Rican" = 4, "Other" = 8, "Unknown" = 9))
+
+# changed labelled entries to factor
+bw = bw |>
+  mutate_if(is.labelled, to_factor)
+```
+
+
+```{r comparison models}
+
+
+#One using length at birth and gestational age as predictors (main effects only)
+#One using head circumference, length, sex, and all interactions (including the three-way interaction) between these
 ```
 
 
