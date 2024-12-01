@@ -1,5 +1,5 @@
 ---
-title: "p8105_hw5_zw2975"
+title: "p8105_hw6_zw2975"
 author: "Zhiyu Wei"
 date: 2024-11-14
 output: github_document
@@ -11,39 +11,24 @@ library(dplyr)
 library(ggplot2)
 library(patchwork)
 library(knitr)
-library(rvest)
+
 ```
 
 
 ## Problem 1
 
-```{r p1}
-# normally distributed birthdays function
-bd_function = function(x, n_days = 365) {
-birthdays = sample (1:n_days, x, replace = TRUE)
-return(any(duplicated(birthdays)))
-}
-
-set.seed(1)# set a seed 
-
-# sample size of 2 to 50 people
-size = 2:50
-prob = numeric(length(size)) #create a probability tibble to be filled in
-
-for(i in size) {
-  output = replicate(10000, bd_function(i))
-  prob[i-1] = mean(output)
-}
-
-# plot probabilities
-ggplot(data.frame(sizes=size, probability=prob), aes(x = size, y = prob))+
-  geom_line()+
-  geom_point()+
-  labs(
-    title = "Probability of shared birthdays vs. sample size",
-    x = "sample size(n)",
-    y = "probability of shared birthdays"
-  )
+```{r obtaining dataset}
+weather_df = 
+  rnoaa::meteo_pull_monitors(
+    c("USW00094728"),
+    var = c("PRCP", "TMIN", "TMAX"), 
+    date_min = "2017-01-01",
+    date_max = "2017-12-31") %>%
+  mutate(
+    name = recode(id, USW00094728 = "CentralPark_NY"),
+    tmin = tmin / 10,
+    tmax = tmax / 10) %>%
+  select(name, id, everything())
 ```
 
 ##### Comment
