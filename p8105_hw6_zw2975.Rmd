@@ -207,38 +207,17 @@ bw = bw |>
   mutate_if(is.labelled, to_factor)
 ```
 
-```{r using modelr}
-cv_df = 
-  crossv_mc(bw, 100) 
-
-# test and train datasets
-cv_df =
-  cv_df |> 
-  mutate(
-    train = map(train, as_tibble),
-    test = map(test, as_tibble))
-
-cv_df = 
-  cv_df |> 
-  mutate(
-    linear_mod  = map(train, \(df) lm(logratio ~ range, data = df)),
-    smooth_mod  = map(train, \(df) gam(logratio ~ s(range), data = df)),
-    wiggly_mod  = map(train, \(df) gam(logratio ~ s(range, k = 30), sp = 10e-6, data = df))) |> 
-  mutate(
-    rmse_linear = map2_dbl(linear_mod, test, \(mod, df) rmse(model = mod, data = df)),
-    rmse_smooth = map2_dbl(smooth_mod, test, \(mod, df) rmse(model = mod, data = df)),
-    rmse_wiggly = map2_dbl(wiggly_mod, test, \(mod, df) rmse(model = mod, data = df)))
-```
-
 
 ```{r fitted vs. residuals}
 # Regression model
 bw_model = lm(bwt ~ gaweeks + delwt + smoken + babysex + mrace, data = bw)
 
+summary(bw_model)
+
 # Add predictions and residuals to the data
 bw = bw |>
-  add_predictions(bw, var = "fitted") |>
-  add_residuals(bw, var = "residuals")
+  add_predictions(bw_model, var = "fitted") |>
+  add_residuals(bw_model, var = "residuals")
 
 # Plot residuals against fitted values
 ggplot(bw, aes(x = fitted, y = residuals)) +
@@ -254,12 +233,9 @@ ggplot(bw, aes(x = fitted, y = residuals)) +
 
 
 ```{r comparison models}
-
 model1 <- lm(bwt ~ blength + gaweeks, data = bw_clean)
 model2 <- lm(bwt ~ bhead * blength * babysex, data = bw_clean)
 
-#One using length at birth and gestational age as predictors (main effects only)
-#One using head circumference, length, sex, and all interactions (including the three-way interaction) between these
 ```
 
 
@@ -293,6 +269,18 @@ summarise(
 print(cv_results_summary)
 ```
 
+
+```{r using modelr}
+cv_df = 
+  crossv_mc(bw, 100) 
+
+# test and train datasets
+cv_df =
+  cv_df |> 
+  mutate(
+    train = map(train, as_tibble),
+    test = map(test, as_tibble))
+```
 
 #### Comparison
 ```{r comaprison between models}
