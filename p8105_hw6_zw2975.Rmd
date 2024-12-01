@@ -108,6 +108,9 @@ ggplot(power_results, aes(x = true_mu)) +
 
 ## Problem 3
 
+```{r Import p3 data}
+bw = read.csv("./data/birthweight.csv")
+```
 
 ###### Description of raw data
 
