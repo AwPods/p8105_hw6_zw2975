@@ -128,6 +128,20 @@ city_results = homic |>
   select(city_state, odds_ratio, conf.low, conf.high)
 ```
 
+
+#### Plot of OR and CIs
+
+```{r plot city results}
+ggplot(city_results, aes(x = odds_ratio, y = reorder(city_state, odds_ratio))) +
+  geom_point() +
+  geom_errorbarh(aes(xmin = conf.low, xmax = conf.high), height = 0.2) + 
+  labs(
+    title = "Adjusted Odds Ratios for Resolved Homicides by City",
+    x = "Odds Ratio (male compared to female)",
+    y = "City"
+  ) 
+```
+
 ## Problem 3
 
 ```{r Import p3 data}
