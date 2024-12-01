@@ -68,41 +68,9 @@ sim_df |>
 
 
 ## Problem 2
-```{r p2}
-# set fixed design elements
-n = 30
-s = 5
-
-set.seed(1)  # set seed
-
-# Function to simulate data and run t-test
-power_sim = function(mu, n = 30, sigma = 5, num_sim = 5000, alpha = 0.05) {
-  results = replicate(num_sim, {
-    x = rnorm(n, mean = mu, sd = s)
-    t_test = t.test(x, mu = 0)
-    broom::tidy(t_test)
-  }, simplify = FALSE)
-  
-  results = bind_rows(results) |>
-    mutate(true_mu = mu)
-  
-  return(results)
-}
-
-# Simulate for different values of mu
-mu_values = 0
-sim_results = bind_rows(lapply(mu_values, power_sim))
-
-mu_values = 0:6
-sim_results = bind_rows(lapply(mu_values, power_sim))
-
-# Calculate power and mean estimates for each mu
-power_results = sim_results |>
-  group_by(true_mu) |>
-  summarise(power = mean(p.value < 0.05),  # Proportion of rejections
-    avg_estimate = mean(estimate),
-    avg_estimate_rejected = mean(estimate[p.value < 0.05]))
-
+```{r import data}
+# import data
+homic = read.csv("./data/homicide-data.csv")
 ```
 
 ##### plot 1
@@ -145,10 +113,6 @@ This bias arises because samples with larger effect sizes are more likely to rej
 
 ## Problem 3
 
-```{r P3}
-# import data
-homic = read.csv("./data files/homicide-data.csv")
-```
 
 ###### Description of raw data
 
