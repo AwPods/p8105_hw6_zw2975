@@ -221,13 +221,12 @@ bw = bw |>
 
 # Plot residuals against fitted values
 ggplot(bw, aes(x = fitted, y = residuals)) +
-  geom_point(alpha = 0.6) +
+  geom_point(alpha = 0.3) +
   geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
   labs(
     title = "Residuals vs. Fitted Values",
     x = "Fitted Values",
-    y = "Residuals"
-  )
+    y = "Residuals")
 
 ```
 
