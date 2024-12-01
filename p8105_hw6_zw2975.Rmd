@@ -84,13 +84,26 @@ filter(!(city_state %in% c("Dallas, TX", "Phoenix, AZ", "Kansas City, MO", "Tuls
 # create binary for case status
 homic = homic |>
   mutate(resolved = ifelse(disposition == "Closed by arrest", 1, 0))
+
+# create a Baltimore dataset
+balt = homic |>
+  filter(city_state == "Baltimore, MD")
 ```
 
 ```{r fit logistic regression}
-# predictors are sex, age, and race of victims
-fit_logistic = 
-  homic |> 
-  glm(resolved ~ victim_age + victim_race + victim_sex, data = _, family = binomial()) 
+# predictors are sex, age, and race of victims (in Baltimore, MD)
+balt_fit = glm(resolved ~ victim_age + victim_race + victim_sex, data = balt, family = binomial()) 
+
+summary(balt_fit)
+
+# Extracing CIs and OR
+balt_results = broom::tidy(balt_fit, conf.int = TRUE) |>
+  filter(term == "victim_sexMale") |>
+  mutate(odds_ratio = exp(estimate),
+         conf.low = exp(conf.low),
+         conf.high = exp(conf.high))
+
+print(balt_results)
 ```
 
 
