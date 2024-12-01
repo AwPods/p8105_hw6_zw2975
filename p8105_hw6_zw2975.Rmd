@@ -207,6 +207,18 @@ bw = bw |>
   mutate_if(is.labelled, to_factor)
 ```
 
+```{r using modelr}
+cv_df = 
+  crossv_mc(bw, 100) 
+
+# test and train datasets
+cv_df =
+  cv_df |> 
+  mutate(
+    train = map(train, as_tibble),
+    test = map(test, as_tibble))
+```
+
 
 ```{r comparison models}
 
