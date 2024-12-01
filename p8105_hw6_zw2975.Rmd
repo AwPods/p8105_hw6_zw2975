@@ -183,7 +183,7 @@ ggplot(city_results, aes(x = reorder(city_state, odds_ratio), y = odds_ratio)) +
 ```
 
 ###### Comment
-
+New York has the lowest odds ratio and also a relatively small range of CI for the odds ratio. It is also obvious that the CI increases in size as the odds ratio increases for most cities. The highest odds ratio of male vs. female resolved crime is from Albuquerque, NM. The highest odds ratio does not exceed 2 and most of the odds ratio lies between 0 and 1, which means that there are more resolved crime when victim's sex is female for most cases. 
 
 
 ## Problem 3
