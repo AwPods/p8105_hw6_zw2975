@@ -132,13 +132,13 @@ city_results = homic |>
 #### Plot of OR and CIs
 
 ```{r plot city results}
-ggplot(city_results, aes(x = odds_ratio, y = reorder(city_state, odds_ratio))) +
+ggplot(city_results, aes(x = reorder(city_state, odds_ratio), y = odds_ratio)) +
   geom_point() +
-  geom_errorbarh(aes(xmin = conf.low, xmax = conf.high), height = 0.2) + 
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2, color = "gray") + 
   labs(
-    title = "Adjusted Odds Ratios for Resolved Homicides by City",
-    x = "Odds Ratio (male compared to female)",
-    y = "City"
+    title = "Adjusted Odds Ratios and CIs for Resolved Homicides by City",
+    y = "Odds Ratio and CIs (male compared to female)",
+    x = "City"
   ) 
 ```
 
