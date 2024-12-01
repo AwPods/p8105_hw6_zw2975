@@ -140,7 +140,11 @@ ggplot(city_results, aes(x = reorder(city_state, odds_ratio), y = odds_ratio)) +
     y = "Odds Ratio and CIs (male compared to female)",
     x = "City"
   ) 
+`
 ```
+
+###### Comment
+
 
 ## Problem 3
 
@@ -183,23 +187,5 @@ city_results = summary |>
   unnest(tidy_results)|>
   select(city_state, estimate, conf.low, conf.high, p.value)
 
-```
-
-
-```{r Problem 3 plot}
-#sort out proportions of unsolved homicides
-city_results = city_results |>
-  arrange(desc(estimate))
-# Plot
-ggplot(city_results, aes(x = reorder(city_state, estimate), y = estimate)) +
-  geom_point(size = 3, color = "red") +  
-  # error bar chart
-  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2, color = "gray") +
-  labs(
-    title = "Proportion of unsolved homicides by city",
-    x = "City",
-    y = "Estimated proportion of unsolved Homicides (high to low)"
-  ) + 
-  coord_flip()   # Flip the coordinates for better view
 ```
 
