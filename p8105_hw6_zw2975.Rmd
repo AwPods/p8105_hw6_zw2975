@@ -73,6 +73,21 @@ sim_df |>
 homic = read.csv("./data/homicide-data.csv")
 ```
 
+```{r data manipulation}
+# create city_state variable
+homic = mutate(homic,
+           city_state= paste(city, state, sep=', ')) |>
+filter(!(city_state %in% c("Dallas, TX", "Phoenix, AZ", "Kansas City, MO", "Tulsa, AL")))
+
+# only leave out desired races
+summary = homic |> 
+  group_by(city_state)|>
+  summarise(
+    Total_homicides = n(),
+    Unsolved_homicides = sum(disposition %in% c("Closed without arrest", "Open/No arrest"))
+  )
+```
+
 ##### plot 1
 
 ```{r plot 1}
@@ -117,19 +132,6 @@ This bias arises because samples with larger effect sizes are more likely to rej
 ###### Description of raw data
 
 The dataset contains `r ncol(homic)` and `r nrow(homic)` records of homicides from `50` major U.S. cities, with details on each case such as victim demographics (`age`, `race`, `sex`), location (`city`, `state`, `latitude`, `longitude`), and case status (`Closed by arrest`, `Closed without arrest`, or `Open/No arrest`). 
-```{r data manipulation}
-# create city_state variable
-homic = mutate(homic,
-           city_state= paste(city, state, sep=', '))
-
-# get summary data
-summary = homic |> 
-  group_by(city_state)|>
-  summarise(
-    Total_homicides = n(),
-    Unsolved_homicides = sum(disposition %in% c("Closed without arrest", "Open/No arrest"))
-  )
-```
 
 
 ```{r prop test}
