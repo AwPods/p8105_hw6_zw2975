@@ -237,8 +237,8 @@ bw_model = lm(bwt ~ gaweeks + delwt + smoken + babysex + mrace, data = bw)
 
 # Add predictions and residuals to the data
 bw = bw |>
-  add_predictions(birthweight_model, var = "fitted") |>
-  add_residuals(birthweight_model, var = "residuals")
+  add_predictions(bw, var = "fitted") |>
+  add_residuals(bw, var = "residuals")
 
 # Plot residuals against fitted values
 ggplot(bw, aes(x = fitted, y = residuals)) +
@@ -255,9 +255,60 @@ ggplot(bw, aes(x = fitted, y = residuals)) +
 
 ```{r comparison models}
 
+model1 <- lm(bwt ~ blength + gaweeks, data = bw_clean)
+model2 <- lm(bwt ~ bhead * blength * babysex, data = bw_clean)
 
 #One using length at birth and gestational age as predictors (main effects only)
 #One using head circumference, length, sex, and all interactions (including the three-way interaction) between these
 ```
 
+
+```{r}
+cv_splits <- crossv_mc(bw_clean, n = 100, test = 0.2)
+
+# Function to compute RMSE for a model
+compute_rmse <- function(split, formula) {
+  train_data <- analysis(split)
+  test_data <- assessment(split)
+  
+  model <- lm(formula, data = train_data)
+  rmse(model, test_data)
+}
+
+# Compare models
+cv_results <- cv_splits |>
+  mutate(
+    model_base = map_dbl(splits, ~ compute_rmse(.x, bwt ~ gaweeks + delwt + smoken + babysex + mrace)),
+    model1 = map_dbl(splits, ~ compute_rmse(.x, bwt ~ blength + gaweeks)),
+    model2 = map_dbl(splits, ~ compute_rmse(.x, bwt ~ bhead * blength * babysex))
+  )
+# Summarize RMSE for each model
+cv_results_summary <- cv_results |>
+summarise(
+    base_rmse = mean(model_base),
+    model1_rmse = mean(model1),
+    model2_rmse = mean(model2)
+  )
+
+print(cv_results_summary)
+```
+
+
+#### Comparison
+```{r comaprison between models}
+# Reshape results for plotting
+cv_results_long <- cv_results |>
+  pivot_longer(cols = starts_with("model"), names_to = "model", values_to = "rmse")
+
+# Plot RMSE comparison
+ggplot(cv_results_long, aes(x = model, y = rmse)) +
+  geom_boxplot(fill = "lightblue", alpha = 0.6) +
+  labs(
+    title = "Cross-Validated RMSE for Models",
+    x = "Model",
+    y = "RMSE"
+  ) +
+  theme_minimal()
+
+```
 
