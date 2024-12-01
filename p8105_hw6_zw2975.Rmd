@@ -217,6 +217,39 @@ cv_df =
   mutate(
     train = map(train, as_tibble),
     test = map(test, as_tibble))
+
+cv_df = 
+  cv_df |> 
+  mutate(
+    linear_mod  = map(train, \(df) lm(logratio ~ range, data = df)),
+    smooth_mod  = map(train, \(df) gam(logratio ~ s(range), data = df)),
+    wiggly_mod  = map(train, \(df) gam(logratio ~ s(range, k = 30), sp = 10e-6, data = df))) |> 
+  mutate(
+    rmse_linear = map2_dbl(linear_mod, test, \(mod, df) rmse(model = mod, data = df)),
+    rmse_smooth = map2_dbl(smooth_mod, test, \(mod, df) rmse(model = mod, data = df)),
+    rmse_wiggly = map2_dbl(wiggly_mod, test, \(mod, df) rmse(model = mod, data = df)))
+```
+
+
+```{r fitted vs. residuals}
+# Regression model
+bw_model = lm(bwt ~ gaweeks + delwt + smoken + babysex + mrace, data = bw)
+
+# Add predictions and residuals to the data
+bw = bw |>
+  add_predictions(birthweight_model, var = "fitted") |>
+  add_residuals(birthweight_model, var = "residuals")
+
+# Plot residuals against fitted values
+ggplot(bw, aes(x = fitted, y = residuals)) +
+  geom_point(alpha = 0.6) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  labs(
+    title = "Residuals vs. Fitted Values",
+    x = "Fitted Values",
+    y = "Residuals"
+  )
+
 ```
 
 
