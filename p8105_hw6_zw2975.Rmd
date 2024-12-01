@@ -210,7 +210,7 @@ bw = bw |>
 
 ```{r fitted vs. residuals}
 # Regression model
-bw_model = lm(bwt ~ gaweeks + delwt + smoken + babysex + mrace, data = bw)
+bw_model = lm(bwt ~ gaweeks + delwt + smoken + babysex + mrace * frace, data = bw)
 
 summary(bw_model)
 
@@ -283,22 +283,8 @@ rmse_summary <- cv_df |>
 print(rmse_summary)
 ```
 
+###### Comment
 
-#### Comparison
-```{r comaprison between models}
-# Reshape results for plotting
-cv_results_long = cv_results |>
-  pivot_longer(cols = starts_with("model"), names_to = "model", values_to = "rmse")
+The summarized RMSE has proven that Model 2, which uses head circumference, length, sex, and all interactions (including the three-way interaction), has the best fit on the data. The RMSE is the second lowest for Model 1, which uses length at birth and gestational age as predictors with only the main effects. My model, however, has the highest RMSE, which means it has the worst fit. It would probably be better to add more interaction terms to the model for a better fit over the data. 
 
-# Plot RMSE comparison
-ggplot(cv_results_long, aes(x = model, y = rmse)) +
-  geom_boxplot(fill = "lightblue", alpha = 0.6) +
-  labs(
-    title = "Cross-Validated RMSE for Models",
-    x = "Model",
-    y = "RMSE"
-  ) +
-  theme_minimal()
-
-```
 
