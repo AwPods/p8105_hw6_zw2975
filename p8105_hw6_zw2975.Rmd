@@ -11,6 +11,8 @@ library(dplyr)
 library(ggplot2)
 library(patchwork)
 library(knitr)
+library(modelr)
+library(mgcv)
 ```
 
 
@@ -30,40 +32,73 @@ weather_df =
   select(name, id, everything())
 ```
 
-```{r linear model}
-fit = lm(tmax ~ tmin, data = weather_df)
-#fit model and get b0 and b1
 
-summary(fit)
-```
+```{r fit model and boostrapping}
+n_sample = 5000
 
-```{r bootstrapping}
-n_samp = 5000
+# function for sampling
+boot_sample = function(df) {
+  sample_frac(df, replace = TRUE)
+}
 
-sim_df_const = 
-  tibble(
-    x = rnorm(n_samp, 1, 1),
-    error = rnorm(n_samp, 0, 1),
-    y = 2 + 3 * x + error
+
+boot_straps = 
+  tibble(strap_number = 1:n_sample) |> 
+  mutate(
+    strap_sample = map(strap_number, ~ boot_sample(df = weather_df))
   )
 
-sim_df_nonconst = sim_df_const |> 
+# linear regression fit
+extract = function(df) {
+  model = lm(tmax ~ tmin, data = df)
+  r_squared = broom::glance(model)$r.squared # Extract R square
+  beta = broom::tidy(model) # Extract coefficients and calculate log(β0 * β1)
+  log_beta = log(beta$estimate[1] * beta$estimate[2])
+  tibble(r_squared = r_squared, log_beta = log_beta)
+}
+
+# Apply the function to each bootstrap sample
+boot_results = boot_straps |> 
   mutate(
-  error = error * .75 * x,
-  y = 2 + 3 * x + error
-)
+    results = purrr::map(strap_sample, extract)
+  ) |> 
+  unnest(results)
 
 ```
 
-```{r plot samples}
-sim_df = 
-  bind_rows(const = sim_df_const, nonconst = sim_df_nonconst, .id = "data_source") 
 
-sim_df |> 
-  ggplot(aes(x = x, y = y)) + 
-  geom_point(alpha = .5) +
-  stat_smooth(method = "lm") +
-  facet_grid(~data_source) 
+
+```{r plot estimates}
+# Plot R square distribution
+ggplot(boot_results, aes(x = r_squared)) +
+  geom_histogram(bins = 30, fill = "blue", alpha = 0.6) +
+  labs(
+    title = "Bootstrap Distribution of R2 Estimates",
+    x = "R squared",
+    y = "Frequency"
+  )
+
+# Plot log(β0 * β1) distribution
+ggplot(boot_results, aes(x = log_beta)) +
+  geom_histogram(bins = 30, fill = "red", alpha = 0.6) +
+  labs(
+    title = "Distribution of log(β0 * β1) estimates",
+    x = "log(β0 * β1)",
+    y = "Frequency"
+  ) 
+```
+
+###### Describe in word
+
+
+
+```{r confidence interval}
+ci_r_squared = quantile(boot_results$r_squared, c(0.025, 0.975))
+ci_log_beta = quantile(boot_results$log_beta, c(0.025, 0.975))
+
+print(ci_r_squared)
+print(ci_log_beta)
+
 ```
 
 
