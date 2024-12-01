@@ -80,6 +80,10 @@ homic = mutate(homic,
 filter(!(city_state %in% c("Dallas, TX", "Phoenix, AZ", "Kansas City, MO", "Tulsa, AL")))|>
   filter(victim_race %in% c("White", "Black")) |>
   mutate(victim_age = as.numeric(victim_age))
+
+# create binary for case status
+homic = homic |>
+  mutate(resolved = ifelse(disposition == "Closed by arrest", 1, 0))
 ```
 
 ```{r fit logistic regression}
