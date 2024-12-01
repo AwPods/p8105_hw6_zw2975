@@ -1,0 +1,208 @@
+---
+title: "p8105_hw5_zw2975"
+author: "Zhiyu Wei"
+date: 2024-11-14
+output: github_document
+---
+
+```{r setup, include = FALSE}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(patchwork)
+library(knitr)
+library(rvest)
+```
+
+
+## Problem 1
+
+```{r p1}
+# normally distributed birthdays function
+bd_function = function(x, n_days = 365) {
+birthdays = sample (1:n_days, x, replace = TRUE)
+return(any(duplicated(birthdays)))
+}
+
+set.seed(1)# set a seed 
+
+# sample size of 2 to 50 people
+size = 2:50
+prob = numeric(length(size)) #create a probability tibble to be filled in
+
+for(i in size) {
+  output = replicate(10000, bd_function(i))
+  prob[i-1] = mean(output)
+}
+
+# plot probabilities
+ggplot(data.frame(sizes=size, probability=prob), aes(x = size, y = prob))+
+  geom_line()+
+  geom_point()+
+  labs(
+    title = "Probability of shared birthdays vs. sample size",
+    x = "sample size(n)",
+    y = "probability of shared birthdays"
+  )
+```
+
+##### Comment
+
+The plot shows a paradox phenomenon, even with a small group (around 25 people for sample size), the probability of shared birthdays exceeds 50%. This probability approaches 100% as the group size nears 50, illustrating the counter intuitive likelihood of shared birthdays in relatively small groups.
+
+The line shows an increase in probability of shared birthday declines as the sample size approaches 30. 
+
+These patterns is due to the normal distribution of birthdays across the year when the birthday function was created.
+
+
+## Problem 2
+```{r p2}
+# set fixed design elements
+n = 30
+s = 5
+
+set.seed(1)  # set seed
+
+# Function to simulate data and run t-test
+power_sim = function(mu, n = 30, sigma = 5, num_sim = 5000, alpha = 0.05) {
+  results = replicate(num_sim, {
+    x = rnorm(n, mean = mu, sd = s)
+    t_test = t.test(x, mu = 0)
+    broom::tidy(t_test)
+  }, simplify = FALSE)
+  
+  results = bind_rows(results) |>
+    mutate(true_mu = mu)
+  
+  return(results)
+}
+
+# Simulate for different values of mu
+mu_values = 0
+sim_results = bind_rows(lapply(mu_values, power_sim))
+
+mu_values = 0:6
+sim_results = bind_rows(lapply(mu_values, power_sim))
+
+# Calculate power and mean estimates for each mu
+power_results = sim_results |>
+  group_by(true_mu) |>
+  summarise(power = mean(p.value < 0.05),  # Proportion of rejections
+    avg_estimate = mean(estimate),
+    avg_estimate_rejected = mean(estimate[p.value < 0.05]))
+
+```
+
+##### plot 1
+
+```{r plot 1}
+ggplot(power_results, aes(x = true_mu, y = power)) +
+  geom_line() +
+  geom_point() +
+  labs(
+    title = "Power vs. True μ",
+    x = "True μ",
+    y = "Power (Proportion of Null Rejections)"
+  )
+```
+
+
+##### plot 2
+
+```{r plot 2, warning = FALSE}
+ggplot(power_results, aes(x = true_mu)) +
+  geom_line(aes(y = avg_estimate), color = "blue", linetype = "dashed") +
+  geom_line(aes(y = avg_estimate_rejected), color = "red") +
+  geom_point(aes(y = avg_estimate), color = "blue") +
+  geom_point(aes(y = avg_estimate_rejected), color = "red") +
+  labs(
+    title = "Average Estimate of μ vs. True μ
+    (red = Avereage estimate rejected, blue = Average estimate of μ)",
+    x = "True μ",
+    y = "Average Estimate of μ") 
+
+```
+
+##### Comment
+
+The average estimate of μ across all samples (blue dashed line) closely follows the true value of μ, indicating unbiased estimation. 
+
+The red solid line (representing estimates from samples where the null was rejected) shows a slight upward increase between 0 to 3 for the True μ.
+
+This bias arises because samples with larger effect sizes are more likely to reject the null hypothesis, where only extreme estimates are considered. That is the reason why the sample average of μ in cases where the null hypotheses are rejected slightly exceeds the true μ.
+
+## Problem 3
+
+```{r P3}
+# import data
+homic = read.csv("./data files/homicide-data.csv")
+```
+
+###### Description of raw data
+
+The dataset contains `r ncol(homic)` and `r nrow(homic)` records of homicides from `50` major U.S. cities, with details on each case such as victim demographics (`age`, `race`, `sex`), location (`city`, `state`, `latitude`, `longitude`), and case status (`Closed by arrest`, `Closed without arrest`, or `Open/No arrest`). 
+```{r data manipulation}
+# create city_state variable
+homic = mutate(homic,
+           city_state= paste(city, state, sep=', '))
+
+# get summary data
+summary = homic |> 
+  group_by(city_state)|>
+  summarise(
+    Total_homicides = n(),
+    Unsolved_homicides = sum(disposition %in% c("Closed without arrest", "Open/No arrest"))
+  )
+```
+
+
+```{r prop test}
+# only leaves out Baltimore, MD
+balt_summary = summary |>
+  filter(city_state =="Baltimore, MD")
+
+# Apply prop.test
+bal_test = prop.test(balt_summary$Unsolved_homicides, balt_summary$Total_homicides)
+
+# broom::tidy the results
+Bal_tidy = broom::tidy(bal_test)
+
+# Extract proportion and confidence interval
+balt_results = Bal_tidy |>
+  select(estimate, conf.low, conf.high)
+print(balt_results)
+
+```
+
+
+```{r running prop test for each city, warning=FALSE}
+
+### original
+city_results = summary |>
+  mutate(
+    test_results = map2(Unsolved_homicides, Total_homicides, ~ prop.test(.x, .y))
+  ) |>
+  mutate(tidy_results = map(test_results, broom::tidy)) |>
+  unnest(tidy_results)|>
+  select(city_state, estimate, conf.low, conf.high, p.value)
+
+```
+
+
+```{r Problem 3 plot}
+#sort out proportions of unsolved homicides
+city_results = city_results |>
+  arrange(desc(estimate))
+# Plot
+ggplot(city_results, aes(x = reorder(city_state, estimate), y = estimate)) +
+  geom_point(size = 3, color = "red") +  
+  # error bar chart
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2, color = "gray") +
+  labs(
+    title = "Proportion of unsolved homicides by city",
+    x = "City",
+    y = "Estimated proportion of unsolved Homicides (high to low)"
+  ) + 
+  coord_flip()   # Flip the coordinates for better view
+```
+
