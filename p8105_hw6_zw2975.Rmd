@@ -82,17 +82,11 @@ filter(!(city_state %in% c("Dallas, TX", "Phoenix, AZ", "Kansas City, MO", "Tuls
   mutate(victim_age = as.numeric(victim_age))
 ```
 
-##### plot 1
-
-```{r plot 1}
-ggplot(power_results, aes(x = true_mu, y = power)) +
-  geom_line() +
-  geom_point() +
-  labs(
-    title = "Power vs. True μ",
-    x = "True μ",
-    y = "Power (Proportion of Null Rejections)"
-  )
+```{r fit logistic regression}
+# predictors are sex, age, and race of victims
+fit_logistic = 
+  homic |> 
+  glm(resolved ~ victim_age + victim_race + victim_sex, data = _, family = binomial()) 
 ```
 
 
@@ -111,14 +105,6 @@ ggplot(power_results, aes(x = true_mu)) +
     y = "Average Estimate of μ") 
 
 ```
-
-##### Comment
-
-The average estimate of μ across all samples (blue dashed line) closely follows the true value of μ, indicating unbiased estimation. 
-
-The red solid line (representing estimates from samples where the null was rejected) shows a slight upward increase between 0 to 3 for the True μ.
-
-This bias arises because samples with larger effect sizes are more likely to reject the null hypothesis, where only extreme estimates are considered. That is the reason why the sample average of μ in cases where the null hypotheses are rejected slightly exceeds the true μ.
 
 ## Problem 3
 
