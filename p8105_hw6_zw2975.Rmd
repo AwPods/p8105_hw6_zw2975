@@ -22,11 +22,11 @@ weather_df =
     c("USW00094728"),
     var = c("PRCP", "TMIN", "TMAX"), 
     date_min = "2017-01-01",
-    date_max = "2017-12-31") %>%
+    date_max = "2017-12-31") |>
   mutate(
     name = recode(id, USW00094728 = "CentralPark_NY"),
     tmin = tmin / 10,
-    tmax = tmax / 10) %>%
+    tmax = tmax / 10) |>
   select(name, id, everything())
 ```
 
@@ -90,6 +90,8 @@ balt = homic |>
   filter(city_state == "Baltimore, MD")
 ```
 
+#### Logistic Regression Model
+
 ```{r fit logistic regression}
 # predictors are sex, age, and race of victims (in Baltimore, MD)
 balt_fit = glm(resolved ~ victim_age + victim_race + victim_sex, data = balt, family = binomial()) 
@@ -107,20 +109,23 @@ print(balt_results)
 ```
 
 
-##### plot 2
-
-```{r plot 2, warning = FALSE}
-ggplot(power_results, aes(x = true_mu)) +
-  geom_line(aes(y = avg_estimate), color = "blue", linetype = "dashed") +
-  geom_line(aes(y = avg_estimate_rejected), color = "red") +
-  geom_point(aes(y = avg_estimate), color = "blue") +
-  geom_point(aes(y = avg_estimate_rejected), color = "red") +
-  labs(
-    title = "Average Estimate of μ vs. True μ
-    (red = Avereage estimate rejected, blue = Average estimate of μ)",
-    x = "True μ",
-    y = "Average Estimate of μ") 
-
+```{r each city, warning = FALSE}
+city_results = homic |>
+  group_by(city_state) |>
+  nest() |>
+  mutate(
+    model = purrr::map(data, ~ glm(resolved ~ victim_age + victim_sex + victim_race, 
+                            data = ., 
+                            family = binomial)),
+    tidy_model = purrr::map(model, ~ broom::tidy(.x, conf.int = TRUE)),
+    odds_ratios = purrr::map(tidy_model, ~ .x |>
+                        filter(term == "victim_sexMale") |>
+                        mutate(odds_ratio = exp(estimate),
+                               conf.low = exp(conf.low),
+                               conf.high = exp(conf.high)))
+  ) |>
+  unnest(odds_ratios) |>
+  select(city_state, odds_ratio, conf.low, conf.high)
 ```
 
 ## Problem 3
