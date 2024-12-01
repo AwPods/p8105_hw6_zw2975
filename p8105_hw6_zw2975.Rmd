@@ -90,7 +90,9 @@ ggplot(boot_results, aes(x = log_beta)) +
 
 ###### Describe in word
 
+Both distributions are normally distributed. The R squared distribution has the highest number of observations around 0.91 that has slightly less than 500 observations. The highest R squared does not exceed 0.94 and the lowest does not go lower than 0.87.
 
+For the log(B0*B1) distribution, the highest log(B0*B1) lies around 2.2 with more than 500 observations. The highest observation does not exceed 2.125 and the lowest does not go under 1.925. 
 
 ```{r confidence interval}
 ci_r_squared = quantile(boot_results$r_squared, c(0.025, 0.975))
