@@ -241,26 +241,26 @@ model2 = lm(bwt ~ bhead * blength * babysex, data = bw)
 ```{r cv functions}
 cv_df <- crossv_mc(bw, n = 100, test = 0.2)
 
-# Convert train and test sets to tibbles
+# convert train and test sets to tibbles
 cv_df <- cv_df |> 
   mutate(
     train = map(train, as_tibble),
     test = map(test, as_tibble))
 
-# Fit models on training data
+# fit models on training data
 cv_df <- cv_df |> 
   mutate(
     bw_mod = map(train, ~ lm(bwt ~ gaweeks + delwt + smoken + babysex + mrace, data = .x)),
     m1_mod = map(train, ~ gam(bwt ~ s(blength) + s(gaweeks), data = .x)),
     m2_mod = map(train, ~ gam(bwt ~ s(bhead, blength, babysex), data = .x)))
 
-# Function to calculate RMSE
+# function to calculate RMSE
 rmse <- function(model, data) {
   preds <- predict(model, newdata = data)
   sqrt(mean((data$bwt - preds)^2))
 }
 
-# Calculate RMSE for every model
+# get RMSE for every model
 cv_df <- cv_df |> 
   mutate(
     rmse_bw = map2_dbl(bw_mod, test, ~ rmse(.x, .y)),
@@ -269,7 +269,7 @@ cv_df <- cv_df |>
   )
 
 
-# Summarize RMSE for every model
+# summarize RMSE for every model
 rmse_summary <- cv_df |> 
   summarise(
     mean_rmse_bw = mean(rmse_bw),
@@ -281,60 +281,6 @@ rmse_summary <- cv_df |>
   )
 
 print(rmse_summary)
-
-
-
-
-
-
-cv_df = 
-  crossv_mc(bw, 100) 
-
-# test and train datasets
-cv_df =
-  cv_df |> 
-  mutate(
-    train = map(train, as_tibble),
-    test = map(test, as_tibble))
-
-# mutate to compare models
-cv_df = 
-  cv_df |> 
-  mutate(
-    bw_mod  = map(train, \(df) lm(logratio ~ range, data = bw)),
-    m1_mod  = map(train, \(df) gam(logratio ~ s(range), data = df)),
-    m2_mod  = map(train, \(df) gam(logratio ~ s(range, k = 30), sp = 10e-6, data = df))) |> 
-  mutate(
-    rmse_bw = map2_dbl(bw_mod, test, \(mod, df) rmse(model = mod, data = df)),
-    rmse_m1 = map2_dbl(m1_mod, test, \(mod, df) rmse(model = mod, data = df)),
-    rmse_m2 = map2_dbl(m2_mod, test, \(mod, df) rmse(model = mod, data = df)))
-
-cv_splits = crossv_mc(bw, n = 100, test = 0.2)
-
-# using a function to compute RMSE
-compute_rmse = function(split, formula) {
-  train_data = analysis(split)
-  test_data = assessment(split)
-  
-  model = lm(formula, data = train_data)
-  rmse(model, test_data)
-}
-
-# Compare models
-cv_results = cv_splits |>
-  mutate(
-    model_base = map_dbl(split, ~ compute_rmse(.x, bwt ~ gaweeks + delwt + smoken + babysex + mrace)),
-    model1 = map_dbl(split, ~ compute_rmse(.x, bwt ~ blength + gaweeks)),
-    model2 = map_dbl(split, ~ compute_rmse(.x, bwt ~ bhead * blength * babysex)))
-
-# Summarize RMSE for each model
-cv_results_summary = cv_results |>
-summarise(
-    base_rmse = mean(model_base),
-    model1_rmse = mean(model1),
-    model2_rmse = mean(model2))
-
-print(cv_results_summary)
 ```
 
 
