@@ -176,7 +176,10 @@ ggplot(city_results, aes(x = reorder(city_state, odds_ratio), y = odds_ratio)) +
     title = "Adjusted Odds Ratios and CIs for Resolved Homicides by City",
     y = "Odds Ratio and CIs (male compared to female)",
     x = "City"
-  ) 
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 1)  # Rotate city names to save space
+  )
 
 ```
 
