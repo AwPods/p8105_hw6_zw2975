@@ -74,18 +74,12 @@ homic = read.csv("./data/homicide-data.csv")
 ```
 
 ```{r data manipulation}
-# create city_state variable
+# create city_state variable, omit places, only keep desired races, numeric victim_age
 homic = mutate(homic,
            city_state= paste(city, state, sep=', ')) |>
-filter(!(city_state %in% c("Dallas, TX", "Phoenix, AZ", "Kansas City, MO", "Tulsa, AL")))
-
-# only leave out desired races
-summary = homic |> 
-  group_by(city_state)|>
-  summarise(
-    Total_homicides = n(),
-    Unsolved_homicides = sum(disposition %in% c("Closed without arrest", "Open/No arrest"))
-  )
+filter(!(city_state %in% c("Dallas, TX", "Phoenix, AZ", "Kansas City, MO", "Tulsa, AL")))|>
+  filter(victim_race %in% c("White", "Black")) |>
+  mutate(victim_age = as.numeric(victim_age))
 ```
 
 ##### plot 1
