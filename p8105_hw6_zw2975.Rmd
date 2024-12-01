@@ -11,7 +11,6 @@ library(dplyr)
 library(ggplot2)
 library(patchwork)
 library(knitr)
-
 ```
 
 
@@ -31,13 +30,41 @@ weather_df =
   select(name, id, everything())
 ```
 
-##### Comment
+```{r linear model}
+fit = lm(tmax ~ tmin, data = weather_df)
+#fit model and get b0 and b1
 
-The plot shows a paradox phenomenon, even with a small group (around 25 people for sample size), the probability of shared birthdays exceeds 50%. This probability approaches 100% as the group size nears 50, illustrating the counter intuitive likelihood of shared birthdays in relatively small groups.
+summary(fit)
+```
 
-The line shows an increase in probability of shared birthday declines as the sample size approaches 30. 
+```{r bootstrapping}
+n_samp = 5000
 
-These patterns is due to the normal distribution of birthdays across the year when the birthday function was created.
+sim_df_const = 
+  tibble(
+    x = rnorm(n_samp, 1, 1),
+    error = rnorm(n_samp, 0, 1),
+    y = 2 + 3 * x + error
+  )
+
+sim_df_nonconst = sim_df_const |> 
+  mutate(
+  error = error * .75 * x,
+  y = 2 + 3 * x + error
+)
+
+```
+
+```{r plot samples}
+sim_df = 
+  bind_rows(const = sim_df_const, nonconst = sim_df_nonconst, .id = "data_source") 
+
+sim_df |> 
+  ggplot(aes(x = x, y = y)) + 
+  geom_point(alpha = .5) +
+  stat_smooth(method = "lm") +
+  facet_grid(~data_source) 
+```
 
 
 ## Problem 2
