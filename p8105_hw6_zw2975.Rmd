@@ -175,8 +175,7 @@ ggplot(city_results, aes(x = reorder(city_state, odds_ratio), y = odds_ratio)) +
   labs(
     title = "Adjusted Odds Ratios and CIs for Resolved Homicides by City",
     y = "Odds Ratio and CIs (male compared to female)",
-    x = "City"
-  ) +
+    x = "City") +
   theme(
     axis.text.x = element_text(angle = 90, hjust = 1)) # Rotate city names to save space
 
@@ -261,8 +260,7 @@ cv_df <- cv_df |>
   mutate(
     rmse_bw = map2_dbl(bw_mod, test, ~ rmse(.x, .y)),
     rmse_m1 = map2_dbl(m1_mod, test, ~ rmse(.x, .y)),
-    rmse_m2 = map2_dbl(m2_mod, test, ~ rmse(.x, .y))
-  )
+    rmse_m2 = map2_dbl(m2_mod, test, ~ rmse(.x, .y)))
 
 
 # summarize RMSE for every model
@@ -273,8 +271,7 @@ rmse_summary <- cv_df |>
     mean_rmse_m2 = mean(rmse_m2),
     sd_rmse_bw = sd(rmse_bw),
     sd_rmse_m1 = sd(rmse_m1),
-    sd_rmse_m2 = sd(rmse_m2)
-  )
+    sd_rmse_m2 = sd(rmse_m2))
 
 print(rmse_summary)
 ```
