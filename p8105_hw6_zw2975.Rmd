@@ -47,8 +47,7 @@ boot_sample = function(df) {
 boot_straps = 
   tibble(strap_number = 1:n_sample) |> 
   mutate(
-    strap_sample = map(strap_number, ~ boot_sample(df = weather_df))
-  )
+    strap_sample = map(strap_number, ~ boot_sample(df = weather_df)))
 
 # linear regression fit
 extract = function(df) {
@@ -62,12 +61,9 @@ extract = function(df) {
 # Apply the function to each bootstrap sample
 boot_results = boot_straps |> 
   mutate(
-    results = purrr::map(strap_sample, extract)
-  ) |> 
+    results = purrr::map(strap_sample, extract)) |> 
   unnest(results)
-
 ```
-
 
 
 ```{r plot estimates}
@@ -77,8 +73,7 @@ ggplot(boot_results, aes(x = r_squared)) +
   labs(
     title = "Bootstrap Distribution of R2 Estimates",
     x = "R squared",
-    y = "Frequency"
-  )
+    y = "Frequency")
 
 # Plot log(β0 * β1) distribution
 ggplot(boot_results, aes(x = log_beta)) +
@@ -86,8 +81,7 @@ ggplot(boot_results, aes(x = log_beta)) +
   labs(
     title = "Distribution of log(β0 * β1) estimates",
     x = "log(β0 * β1)",
-    y = "Frequency"
-  ) 
+    y = "Frequency") 
 ```
 
 ###### Describe in word
@@ -159,8 +153,7 @@ city_results = homic |>
                         filter(term == "victim_sexMale") |>
                         mutate(odds_ratio = exp(estimate),
                                conf.low = exp(conf.low),
-                               conf.high = exp(conf.high)))
-  ) |>
+                               conf.high = exp(conf.high)))) |>
   unnest(odds_ratios) |>
   select(city_state, odds_ratio, conf.low, conf.high)
 ```
@@ -172,13 +165,10 @@ city_results = homic |>
 ggplot(city_results, aes(x = reorder(city_state, odds_ratio), y = odds_ratio)) +
   geom_point() +
   geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2, color = "gray") + 
-  labs(
-    title = "Adjusted Odds Ratios and CIs for Resolved Homicides by City",
+  labs(title = "Adjusted Odds Ratios and CIs for Resolved Homicides by City",
     y = "Odds Ratio and CIs (male compared to female)",
     x = "City") +
-  theme(
-    axis.text.x = element_text(angle = 90, hjust = 1)) # Rotate city names to save space
-
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) # Rotate city names to save space
 ```
 
 ###### Comment
@@ -218,8 +208,7 @@ bw = bw |>
 ggplot(bw, aes(x = fitted, y = residuals)) +
   geom_point(alpha = 0.3) +
   geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
-  labs(
-    title = "Residuals vs. Fitted Values",
+  labs(title = "Residuals vs. Fitted Values",
     x = "Fitted Values",
     y = "Residuals")
 
