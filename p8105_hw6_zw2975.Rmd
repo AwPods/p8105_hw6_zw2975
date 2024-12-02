@@ -1,7 +1,7 @@
 ---
 title: "p8105_hw6_zw2975"
 author: "Zhiyu Wei"
-date: 2024-11-14
+date: 2024-12-1
 output: github_document
 ---
 
@@ -135,8 +135,6 @@ balt = homic |>
 # predictors are sex, age, and race of victims (in Baltimore, MD)
 balt_fit = glm(resolved ~ victim_age + victim_race + victim_sex, data = balt, family = binomial()) 
 
-summary(balt_fit)
-
 # Extracing CIs and OR
 balt_results = broom::tidy(balt_fit, conf.int = TRUE) |>
   filter(term == "victim_sexMale") |>
@@ -211,8 +209,6 @@ bw = bw |>
 ```{r fitted vs. residuals}
 # Regression model
 bw_model = lm(bwt ~ gaweeks + delwt + smoken + babysex + mrace * frace, data = bw)
-
-summary(bw_model)
 
 # Add predictions and residuals to the data
 bw = bw |>
